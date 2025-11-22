@@ -8,8 +8,8 @@ void main() async {
   await dotenv.load(fileName: ".env");
 
   await Supabase.initialize(
-    anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
-    url: dotenv.env['SUPABASE_URL']!,
+    anonKey: String.fromEnvironment('SUPABASE_URL'),
+    url: String.fromEnvironment('SUPABASE_URL'),
   );
   runApp(MyApp());
 }
