@@ -122,7 +122,7 @@ class _AboutState extends State<About> {
                 child: SizedBox(
                   width: double.infinity,
                   height: 50,
-                  child: ElevatedButton (
+                  child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
                       foregroundColor: Colors.white,
