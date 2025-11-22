@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:server_site/gallery.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:server_site/main.dart';
 
 class Status extends StatefulWidget {
   const Status({super.key});
@@ -138,18 +139,7 @@ class _StatusState extends State<Status> {
                       ),
                     ),
                     onPressed: () async {
-                      Navigator.pop(context); // close drawer first
-
-                      final supabase = supabase.instance.client;
-
-                      await supabase.auth.signInWithOAuth(
-                        Provider.discord, // or Provider.google, Provider.github
-                        redirectTo:
-                            'io.supabase.flutter://login-callback/', // deep link
-                      );
-
-                      // Supabase will handle redirect → return to app
-                      // You stay on the same Status page, but now user is logged in
+                      Navigator.pop(context); 
                     },
                     child: const Text("Login with Discord"),
                   ),

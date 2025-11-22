@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:server_site/gallery.dart';
 import 'package:server_site/status.dart';
+import 'package:server_site/main.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class About extends StatefulWidget {
   const About({super.key});
@@ -82,8 +84,7 @@ class _AboutState extends State<About> {
                 padding: EdgeInsets.zero,
                 children: [
                   ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     title: const Text(
                       'About',
                       textAlign: TextAlign.center,
@@ -96,16 +97,14 @@ class _AboutState extends State<About> {
                     },
                   ),
                   ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     title: const Text('Status', textAlign: TextAlign.center),
                     onTap: () {
                       _navigateSafely(const Status());
                     },
                   ),
                   ListTile(
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 16),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
                     title: const Text('Gallery', textAlign: TextAlign.center),
                     onTap: () {
                       _navigateSafely(const Gallery());
@@ -123,16 +122,21 @@ class _AboutState extends State<About> {
                 child: SizedBox(
                   width: double.infinity,
                   height: 50,
-                  child: ElevatedButton(
+                  child: ElevatedButton (
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
                       foregroundColor: Colors.white,
-                  
+
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadiusGeometry.circular(10),
                       ),
                     ),
-                    onPressed: () {},
+                    onPressed: () async {
+                      await supabase.auth.signInWithOAuth(
+                        OAuthProvider.discord,
+                        redirectTo: 'https://friendsmp75.netlify.app/',
+                      );
+                    },
                     child: const Text("Login with Discord"),
                   ),
                 ),
