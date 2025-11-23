@@ -1,0 +1,16 @@
+[build]
+  # Install Flutter SDK and build the web app
+  command = """
+    git clone https://github.com/flutter/flutter.git -b stable --depth 1 /opt/build/flutter && \
+    export PATH="/opt/build/flutter/bin:$PATH" && \
+    flutter config --no-analytics && \
+    flutter --version && \
+    flutter pub get && \
+    flutter build web --release
+  """
+  publish = "build/web"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
