@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:server_site/gallery.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:server_site/main.dart';
+
+SupabaseClient get supabase => Supabase.instance.client;
 
 class Status extends StatefulWidget {
   const Status({super.key});

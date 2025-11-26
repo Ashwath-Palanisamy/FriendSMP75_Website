@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:server_site/status.dart';
-import 'package:server_site/main.dart';
 
 class Gallery extends StatefulWidget {
   const Gallery({super.key});

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';

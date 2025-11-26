@@ -1,8 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:server_site/gallery.dart';
 import 'package:server_site/status.dart';
-import 'package:server_site/main.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart' as url_launcher;
+
+SupabaseClient get supabase => Supabase.instance.client;
 
 class About extends StatefulWidget {
   const About({super.key});
@@ -132,10 +136,20 @@ class _AboutState extends State<About> {
                       ),
                     ),
                     onPressed: () async {
-                      await supabase.auth.signInWithOAuth(
-                        OAuthProvider.discord,
-                        redirectTo: 'https://friendsmp75.netlify.app/',
+                      final resposnse = await http.get(
+                        Uri.parse(
+                          'https://key-backend-for-friendsmp75-website.onrender.com/login',
+                        ),
+                        headers: {
+                          "X-Access-Token":
+                              'ybjyyfusdhhdtfvsckbcksdufhcgsjhcmnnxgcjbcn',
+                        },
                       );
+                      if (resposnse.statusCode == 200) {
+                        final loginUrl = jsonDecode(resposnse.body)['url'];
+
+                        url_launcher.launchUrl(loginUrl);
+                      }
                     },
                     child: const Text("Login with Discord"),
                   ),
@@ -145,7 +159,6 @@ class _AboutState extends State<About> {
           ],
         ),
       ),
-
       body: const Center(child: Text('Welcome to the About app!')),
     );
   }
