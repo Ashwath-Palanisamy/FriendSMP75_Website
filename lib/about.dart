@@ -147,7 +147,7 @@ class _AboutState extends State<About> {
                       if (redirectUrl.statusCode == 200){
                         supabase.auth.signInWithOAuth(
                           OAuthProvider.discord,
-                          redirectTo: jsonDecode(redirectUrl.body)['url'],
+                          redirectTo: jsonDecode(redirectUrl.body)['url']
                         );
                       }
                     },
