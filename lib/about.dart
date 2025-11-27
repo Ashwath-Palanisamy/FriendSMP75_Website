@@ -136,19 +136,19 @@ class _AboutState extends State<About> {
                       ),
                     ),
                     onPressed: () async {
-                      final resposnse = await http.get(
+                      final redirectUrl = await http.get(
                         Uri.parse(
                           'https://key-backend-for-friendsmp75-website.onrender.com/login',
                         ),
                         headers: {
-                          "X-Access-Token":
-                              'ybjyyfusdhhdtfvsckbcksdufhcgsjhcmnnxgcjbcn',
-                        },
+                          'X-Access-Token': 'ybjyyfusdhhdtfvsckbcksdufhcgsjhcmnnxgcjbcn'
+                        }
                       );
-                      if (resposnse.statusCode == 200) {
-                        final loginUrl = jsonDecode(resposnse.body)['url'];
-
-                        url_launcher.launchUrl(loginUrl);
+                      if (redirectUrl.statusCode == 200){
+                        supabase.auth.signInWithOAuth(
+                          OAuthProvider.discord,
+                          redirectTo: jsonDecode(redirectUrl.body)['url'],
+                        );
                       }
                     },
                     child: const Text("Login with Discord"),
