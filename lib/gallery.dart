@@ -1,6 +1,10 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:server_site/status.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+SupabaseClient get supabase => Supabase.instance.client;
 
 class Gallery extends StatefulWidget {
   const Gallery({super.key});
@@ -10,6 +14,22 @@ class Gallery extends StatefulWidget {
 }
 
 class _GalleryState extends State<Gallery> {
+  StreamSubscription<AuthState>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = supabase.auth.onAuthStateChange.listen((data) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
   Future<void> _navigateSafely(Widget page) async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
@@ -131,7 +151,7 @@ class _GalleryState extends State<Gallery> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
                       foregroundColor: Colors.white,
-                  
+
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadiusGeometry.circular(10),
                       ),

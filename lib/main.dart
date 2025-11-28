@@ -6,9 +6,7 @@ import 'package:server_site/supabase_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SupabaseConfig.init();
-  SupabaseConfig.startAuthListener((data) {
-    print("Auth event: ${data.event}");
-  });
+  SupabaseConfig.startAuthListener((data) {});
   runApp(MyApp());
 }
 

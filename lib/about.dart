@@ -28,11 +28,9 @@ class _AboutState extends State<About> {
 
   @override
   void dispose() {
-    _authSub?.cancel(); // cancel subscription when widget is disposed
+    _authSub?.cancel(); 
     super.dispose();
   }
-
-
 
   Future<void> _navigateSafely(Widget page) async {
     Navigator.pop(context);
@@ -81,10 +79,6 @@ class _AboutState extends State<About> {
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
     final displayName = _getUserData(user);
-
-    // Debug print to see actual metadata
-    print("User metadata: ${user?.userMetadata}");
-
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,

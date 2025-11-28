@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:server_site/gallery.dart';
@@ -13,6 +14,20 @@ class Status extends StatefulWidget {
 }
 
 class _StatusState extends State<Status> {
+  StreamSubscription<AuthState>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    _authSub = supabase.auth.onAuthStateChange.listen((data) {});
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel();
+    super.dispose();
+  }
+
   Future<void> _navigateSafely(Widget page) async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
@@ -140,7 +155,7 @@ class _StatusState extends State<Status> {
                       ),
                     ),
                     onPressed: () async {
-                      Navigator.pop(context); 
+                      Navigator.pop(context);
                     },
                     child: const Text("Login with Discord"),
                   ),
