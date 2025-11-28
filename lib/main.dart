@@ -5,17 +5,10 @@ import 'package:server_site/supabase_config.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  final credentials = await fetchsupabasedetails();
-  if (credentials != null) {
-    await Supabase.initialize(
-      anonKey: credentials['key']!,
-      url: credentials['url']!,
-    );
-  } else {
-    print("Failed to get data from backend");
-  }
-
+  await SupabaseConfig.init();
+  SupabaseConfig.startAuthListener((data) {
+    print("Auth event: ${data.event}");
+  });
   runApp(MyApp());
 }
 

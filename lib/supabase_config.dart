@@ -1,40 +1,74 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'dart:async';
 
-Future<Map<String, String>?> fetchsupabasedetails() async {
-  const backendUrl =
-      'https://key-backend-for-friendsmp75-website.onrender.com/secure-data';
-  const accessToken = 'ybjyyfusdhhdtfvsckbcksdufhcgsjhcmnnxgcjbcn';
+class SupabaseConfig {
+  static SupabaseClient? _client;
+  static StreamSubscription<AuthState>? _authSub;
 
-  try {
-    final response = await http.get(
-      Uri.parse(backendUrl),
-      headers: {'X-Access-Token': accessToken},
-    );
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final supabaseUrl = data['supabase_url'] as String?;
-      final supabaseKey = data['supabase_key'] as String?;
+  static SupabaseClient get client {
+    if (_client == null) {
+      throw Exception("Supabase not initialized yet. Call init() first.");
+    }
+    return _client!;
+  }
 
-      if (supabaseUrl != null && supabaseKey != null) {
-        return {'url': supabaseUrl, 'key': supabaseKey};
+  /// Fetch credentials from backend
+  static Future<Map<String, String>?> fetchSupabaseDetails() async {
+    const backendUrl =
+        'https://key-backend-for-friendsmp75-website.onrender.com/secure-data';
+    const accessToken = 'ybjyyfusdhhdtfvsckbcksdufhcgsjhcmnnxgcjbcn';
+
+    try {
+      final response = await http.get(
+        Uri.parse(backendUrl),
+        headers: {'X-Access-Token': accessToken},
+      );
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final supabaseUrl = data['supabase_url'] as String?;
+        final supabaseKey = data['supabase_key'] as String?;
+
+        if (supabaseUrl != null && supabaseKey != null) {
+          return {'url': supabaseUrl, 'key': supabaseKey};
+        } else {
+          print("Missing fields in response");
+          return null;
+        }
       } else {
-        final error = "Missing fields in response";
-        print(error);
+        print("Unauthorized or failed. Status code ${response.statusCode}");
         return null;
       }
-    } else {
-      final unAuthorized =
-          "Unauthorized or failed to connect. Status code ${response.statusCode}";
-      print(unAuthorized);
+    } catch (e) {
+      print("Error fetching credentials: $e");
       return null;
     }
-  } catch (e) {
-    final error = "Error fetching credentials: $e";
-    print(error);
-    return null;
+  }
+
+  /// Initialize Supabase with fetched credentials
+  static Future<void> init() async {
+    final details = await fetchSupabaseDetails();
+    if (details != null) {
+      await Supabase.initialize(
+        url: details['url']!,
+        anonKey: details['key']!,
+      );
+      _client = Supabase.instance.client;
+      print("Supabase initialized with backend credentials");
+    } else {
+      throw Exception("Failed to fetch Supabase credentials");
+    }
+  }
+
+  /// Start listening to auth state changes globally
+  static void startAuthListener(void Function(AuthState) onChange) {
+    _authSub = client.auth.onAuthStateChange.listen(onChange);
+  }
+
+  /// Stop listening
+  static void stopAuthListener() {
+    _authSub?.cancel();
+    _authSub = null;
   }
 }
-
-SupabaseClient get supabase => Supabase.instance.client;
