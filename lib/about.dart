@@ -29,8 +29,42 @@ class _AboutState extends State<About> {
     );
   }
 
+  Future<void> _loginWithDiscord() async {
+    await supabase.auth.signInWithOAuth(OAuthProvider.discord);
+  }
+
+  Future<void> _logout() async {
+    await supabase.auth.signOut();
+    setState(() {}); // refresh UI
+  }
+
+  /// Helper to safely extract display name
+  String _getUserData(User? user) {
+    if (user == null) return 'User';
+    final meta = user.userMetadata;
+
+    final rawName = meta?['name'];
+    final rawUserName = meta?['user_name'];
+    final rawUsername = meta?['username'];
+
+    dynamic candidate = rawName ?? rawUserName ?? rawUsername;
+
+    if (candidate is String) return candidate;
+    if (candidate is List && candidate.isNotEmpty)
+      return candidate.first.toString();
+    if (candidate != null) return candidate.toString();
+
+    return 'User';
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = supabase.auth.currentUser;
+    final displayName = _getUserData(user);
+
+    // Debug print to see actual metadata
+    print("User metadata: ${user?.userMetadata}");
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -117,7 +151,7 @@ class _AboutState extends State<About> {
               ),
             ),
 
-            // Bottom login button
+            // Bottom login button (adapted safely)
             Align(
               alignment: Alignment.bottomCenter,
               child: Padding(
@@ -129,28 +163,22 @@ class _AboutState extends State<About> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
                       foregroundColor: Colors.white,
-
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadiusGeometry.circular(10),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                     onPressed: () async {
-                      final redirectUrl = await http.get(
-                        Uri.parse(
-                          'https://key-backend-for-friendsmp75-website.onrender.com/login',
-                        ),
-                        headers: {
-                          'X-Access-Token': 'ybjyyfusdhhdtfvsckbcksdufhcgsjhcmnnxgcjbcn'
-                        }
-                      );
-                      if (redirectUrl.statusCode == 200){
-                        supabase.auth.signInWithOAuth(
-                          OAuthProvider.discord,
-                          redirectTo: jsonDecode(redirectUrl.body)['url'],
-                        );
+                      if (user == null) {
+                        await _loginWithDiscord();
+                      } else {
+                        await _logout();
                       }
                     },
-                    child: const Text("Login with Discord"),
+                    child: Text(
+                      user == null
+                          ? "Login with Discord"
+                          : "👋 Welcome, $displayName (Logout)",
+                    ),
                   ),
                 ),
               ),

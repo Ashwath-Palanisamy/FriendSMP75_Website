@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-
 Future<Map<String, String>?> fetchsupabasedetails() async {
   const backendUrl =
       'https://key-backend-for-friendsmp75-website.onrender.com/secure-data';
