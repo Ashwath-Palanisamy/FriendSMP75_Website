@@ -1,9 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:server_site/gallery.dart';
 import 'package:server_site/status.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:http/http.dart' as http;
+import 'dart:async';
 
 SupabaseClient get supabase => Supabase.instance.client;
 
@@ -15,6 +14,26 @@ class About extends StatefulWidget {
 }
 
 class _AboutState extends State<About> {
+
+  StreamSubscription<AuthState>? _authSub;
+
+  @override
+  void initState() {
+    super.initState();
+    // Subscribe to auth state changes
+    _authSub = supabase.auth.onAuthStateChange.listen((data) {
+      if (mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _authSub?.cancel(); // cancel subscription when widget is disposed
+    super.dispose();
+  }
+
+
+
   Future<void> _navigateSafely(Widget page) async {
     Navigator.pop(context);
     await Future.delayed(const Duration(milliseconds: 200));
@@ -50,8 +69,9 @@ class _AboutState extends State<About> {
     dynamic candidate = rawName ?? rawUserName ?? rawUsername;
 
     if (candidate is String) return candidate;
-    if (candidate is List && candidate.isNotEmpty)
+    if (candidate is List && candidate.isNotEmpty) {
       return candidate.first.toString();
+    }
     if (candidate != null) return candidate.toString();
 
     return 'User';
