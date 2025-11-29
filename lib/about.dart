@@ -15,7 +15,6 @@ class About extends StatefulWidget {
 }
 
 class _AboutState extends State<About> {
-
   StreamSubscription<AuthState>? _authSub;
 
   @override
@@ -29,7 +28,7 @@ class _AboutState extends State<About> {
 
   @override
   void dispose() {
-    _authSub?.cancel(); 
+    _authSub?.cancel();
     super.dispose();
   }
 
@@ -139,12 +138,37 @@ class _AboutState extends State<About> {
               ),
             ),
 
-            // Bottom login button (adapted safely)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: SizedBox(
+            // Bottom greeting + login/logout button
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (user != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (avatarUrl != null)
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundImage: NetworkImage(avatarUrl),
+                            backgroundColor: Colors.transparent,
+                          ),
+                        if (avatarUrl != null) const SizedBox(width: 8),
+                        Text(
+                          '👋 Hello $displayName',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.deepPurple,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                SizedBox(
                   width: double.infinity,
                   height: 70,
                   child: ElevatedButton(
@@ -163,19 +187,20 @@ class _AboutState extends State<About> {
                       }
                     },
                     child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           user == null
                               ? "Login with Discord"
-                              : "👋 Welcome, $displayName (Logout)",
-                          style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                              : "Welcome, $displayName (Logout)",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: 4),
-                        Text(
+                        const SizedBox(height: 4),
+                        const Text(
                           'By logging in you must accept to terms and service',
                           style: TextStyle(
                             fontSize: 12,
@@ -187,11 +212,12 @@ class _AboutState extends State<About> {
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
       ),
+
       body: const Center(child: Text('Welcome to the About app!')),
     );
   }
