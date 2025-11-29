@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:server_site/status.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:server_site/supabase_config.dart';
 
 SupabaseClient get supabase => Supabase.instance.client;
 
@@ -30,25 +31,6 @@ class _GalleryState extends State<Gallery> {
     super.dispose();
   }
 
-  String _getUserData(User? user) {
-    if (user == null) return 'User';
-    final meta = user.userMetadata;
-
-    final rawname = meta?['name'];
-    final rawusername = meta?['user_name'];
-    final rawuserName = meta?['username'];
-
-    dynamic candidate = rawname ?? rawusername ?? rawuserName;
-
-    if (candidate is String) return candidate;
-    if (candidate is List && candidate.isNotEmpty) {
-      return candidate.first.toString();
-    }
-    if (candidate != null) return candidate.toString();
-
-    return 'User';
-  }
-
   Future<void> _navigateSafely(Widget page) async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
@@ -62,19 +44,11 @@ class _GalleryState extends State<Gallery> {
     );
   }
 
-  Future<void> _loginWithDiscord() async {
-    await supabase.auth.signInWithOAuth(OAuthProvider.discord);
-  }
-
-  Future<void> _logout() async {
-    await supabase.auth.signOut();
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    final user = supabase.auth.currentUser;
-    final displayname = _getUserData(user);
+    final user = SupabaseConfig.client.auth.currentUser;
+    final displayName = SupabaseConfig.getDisplayName(user);
+    final avatarUrl = SupabaseConfig.getAvatarUrl(user);
 
     return Scaffold(
       appBar: AppBar(
@@ -170,14 +144,39 @@ class _GalleryState extends State<Gallery> {
               ),
             ),
 
-            // bottom login button
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: SizedBox(
+            // Bottom greeting + login/logout button
+            Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (user != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        if (avatarUrl != null)
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundImage: NetworkImage(avatarUrl),
+                            backgroundColor: Colors.transparent,
+                          ),
+                        if (avatarUrl != null) const SizedBox(width: 8),
+                        Text(
+                          ' Hello $displayName',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.deepPurple,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                SizedBox(
                   width: double.infinity,
-                  height: 70,
+                  height: 60,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
@@ -188,9 +187,9 @@ class _GalleryState extends State<Gallery> {
                     ),
                     onPressed: () async {
                       if (user == null) {
-                        await _loginWithDiscord();
+                        await SupabaseConfig.loginWithDiscord();
                       } else {
-                        await _logout();
+                        await SupabaseConfig.logout();
                       }
                     },
                     child: Column(
@@ -199,16 +198,16 @@ class _GalleryState extends State<Gallery> {
                         Text(
                           user == null
                               ? "Login with Discord"
-                              : "Welcome, $displayname (Logout)",
-                          style: TextStyle(
+                              : "Welcome, $displayName (Logout)",
+                          style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
                           ),
                           textAlign: TextAlign.center,
                         ),
-                        SizedBox(height: 4),
-                        Text(
-                          "By logging in you must accept terms and service",
+                        const SizedBox(height: 4),
+                        const Text(
+                          'By logging in you must accept to terms and service',
                           style: TextStyle(fontSize: 12, color: Colors.white70),
                           textAlign: TextAlign.center,
                         ),
@@ -216,7 +215,7 @@ class _GalleryState extends State<Gallery> {
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),

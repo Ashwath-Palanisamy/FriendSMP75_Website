@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:server_site/about.dart';
 import 'package:server_site/gallery.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:server_site/supabase_config.dart';
 
 SupabaseClient get supabase => Supabase.instance.client;
 
@@ -28,25 +29,6 @@ class _StatusState extends State<Status> {
     super.dispose();
   }
 
-  String _getUserData(User? user) {
-    if (user == null) return 'User';
-    final meta = user.userMetadata;
-
-    final rawName = meta?['name'];
-    final rawusername = meta?['username'];
-    final rawuserName = meta?['user_name'];
-
-    dynamic candidate = rawName ?? rawusername ?? rawuserName;
-
-    if (candidate is String) return candidate;
-    if (candidate is List && candidate.isNotEmpty) {
-      return candidate.first.toString();
-    }
-    if (candidate != null) return candidate.toString();
-
-    return 'User';
-  }
-
   Future<void> _navigateSafely(Widget page) async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
@@ -60,19 +42,11 @@ class _StatusState extends State<Status> {
     );
   }
 
-  Future<void> _loginWithDiscord() async {
-    await supabase.auth.signInWithOAuth(OAuthProvider.discord);
-  }
-
-  Future<void> _logout() async {
-    await supabase.auth.signOut();
-    setState(() {});
-  }
-
   @override
   Widget build(BuildContext context) {
-    final user = supabase.auth.currentUser;
-    final displayname = _getUserData(user);
+    final user = SupabaseConfig.client.auth.currentUser;
+    final displayName = SupabaseConfig.getDisplayName(user);
+    final avatarUrl = SupabaseConfig.getAvatarUrl(user);
 
     return Scaffold(
       appBar: AppBar(
@@ -168,62 +142,74 @@ class _StatusState extends State<Status> {
               ),
             ),
 
-            // bottom login button
+            // Bottom greeting + login/logout button
             Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                if (user!=null) 
-                  Align(
-                    alignment: Alignment.bottomCenter,
-                    child: Text('Hello $displayname'),
-                  ),
-                
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 70,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.deepPurple[400],
-                          foregroundColor: Colors.white,
-                
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadiusGeometry.circular(10),
+                if (user != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        if (avatarUrl != null)
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundImage: NetworkImage(avatarUrl),
+                            backgroundColor: Colors.transparent,
                           ),
+                        if (avatarUrl != null) const SizedBox(width: 8),
+                        Text(
+                          ' Hello $displayName',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.deepPurple,
+                          ),
+                          textAlign: TextAlign.center,
                         ),
-                        onPressed: () async {
-                          if (user == null) {
-                            await _loginWithDiscord();
-                          } else {
-                            await _logout();
-                          }
-                        },
-                        child: Column(
-                          children: [
-                            Text(
-                              user==null?
-                              "Login with Discord"
-                              : "Welcome, $displayname (logout)",
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              'By logging in you must accept to our terms and services',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white70,
-                              ),
-                              textAlign: TextAlign.center,
-                              )
-                          ],
-                        ),
+                      ],
+                    ),
+                  ),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.deepPurple[400],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                    ),
+                    onPressed: () async {
+                      if (user == null) {
+                        await SupabaseConfig.loginWithDiscord();
+                      } else {
+                        await SupabaseConfig.logout();
+                      }
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          user == null
+                              ? "Login with Discord"
+                              : "Welcome, $displayName (Logout)",
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'By logging in you must accept to terms and service',
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
                     ),
                   ),
                 ),

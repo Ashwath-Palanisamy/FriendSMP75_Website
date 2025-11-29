@@ -146,7 +146,7 @@ class _AboutState extends State<About> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         if (avatarUrl != null)
                           CircleAvatar(
@@ -156,7 +156,7 @@ class _AboutState extends State<About> {
                           ),
                         if (avatarUrl != null) const SizedBox(width: 8),
                         Text(
-                          '👋 Hello $displayName',
+                          ' Hello $displayName',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -170,7 +170,7 @@ class _AboutState extends State<About> {
 
                 SizedBox(
                   width: double.infinity,
-                  height: 70,
+                  height: 60,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
