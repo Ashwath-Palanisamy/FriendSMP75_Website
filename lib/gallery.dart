@@ -30,6 +30,24 @@ class _GalleryState extends State<Gallery> {
     super.dispose();
   }
 
+  String _getUserData(User? user) {
+    if (user == null) return 'User';
+    final meta = user.userMetadata;
+
+    
+    final rawUsername = meta?['username'];
+
+    dynamic candidate =rawUsername;
+
+    if (candidate is String) return candidate;
+    if (candidate is List && candidate.isNotEmpty) {
+      return candidate.first.toString();
+    }
+    if (candidate != null) return candidate.toString();
+
+    return 'User';
+  }
+
   Future<void> _navigateSafely(Widget page) async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
@@ -46,6 +64,7 @@ class _GalleryState extends State<Gallery> {
   @override
   Widget build(BuildContext context) {
     final user = supabase.auth.currentUser;
+    final displayname = _getUserData(user);
 
     return Scaffold(
       appBar: AppBar(
@@ -159,7 +178,9 @@ class _GalleryState extends State<Gallery> {
                     ),
                     onPressed: () async {
                       if (user == null) {
-                        await supabase.auth.signInWithOAuth(OAuthProvider.discord);
+                        await supabase.auth.signInWithOAuth(
+                          OAuthProvider.discord,
+                        );
                       } else {
                         await supabase.auth.signOut();
                         setState(() {});
@@ -167,9 +188,11 @@ class _GalleryState extends State<Gallery> {
                     },
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         Text(
-                          "Login with Discord",
+                          user == null
+                              ? "Login with Discord"
+                              : "👋 Welcome, displayName (Logout)",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -179,10 +202,7 @@ class _GalleryState extends State<Gallery> {
                         SizedBox(height: 4),
                         Text(
                           "By logging in you must accept terms and service",
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.white70,
-                          ),
+                          style: TextStyle(fontSize: 12, color: Colors.white70),
                           textAlign: TextAlign.center,
                         ),
                       ],

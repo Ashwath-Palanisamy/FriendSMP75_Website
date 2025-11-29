@@ -60,11 +60,10 @@ class _AboutState extends State<About> {
     if (user == null) return 'User';
     final meta = user.userMetadata;
 
-    final rawName = meta?['name'];
-    final rawUserName = meta?['user_name'];
+    
     final rawUsername = meta?['username'];
 
-    dynamic candidate = rawName ?? rawUserName ?? rawUsername;
+    dynamic candidate =rawUsername;
 
     if (candidate is String) return candidate;
     if (candidate is List && candidate.isNotEmpty) {
