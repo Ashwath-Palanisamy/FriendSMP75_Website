@@ -68380,13 +68380,18 @@ return A.w(p.gd3().iP(),$async$t7)
 case 2:q.aD(new A.a7c())
 return A.z(null,r)}})
 return A.A($async$t7,r)},
-Yq(a){var s,r
+Yq(a){var s,r,q,p,o,n
 if(a==null)return"User"
 s=a.c
-r=s==null?null:s.i(0,"username")
-if(typeof r=="string")return r
-if(t.j.b(r)&&J.rm(r))return J.c9(J.rl(r))
-if(r!=null)return J.c9(r)
+r=s==null
+q=r?null:s.i(0,"name")
+p=r?null:s.i(0,"user_name")
+o=r?null:s.i(0,"username")
+n=q==null?p:q
+if(n==null)n=o
+if(typeof n=="string")return n
+if(t.j.b(n)&&J.rm(n))return J.c9(J.rl(n))
+if(n!=null)return J.c9(n)
 return"User"},
 V(a){var s,r,q,p,o,n,m,l=this,k=null,j=$.d1().b
 j===$&&A.a()
@@ -68490,7 +68495,7 @@ r=A.ag1(A.c([new A.dQ(new A.a9R(),l)],k),!1,r)
 q=A.RQ(B.MT,B.ib,l,66,l,B.ha,1/0)
 p=A.agA(A.ah6(A.c([A.k3(B.aQ,new A.a9S(m,a),!1,l,B.wj),A.k3(B.aQ,new A.a9T(m,a),!1,l,B.wl),A.k3(B.aQ,new A.a9U(m,a),!0,B.ia,B.ML)],k),B.ai))
 o=A.agw(l,l,B.fS,l,l,l,l,l,l,B.i,l,l,l,l,new A.cm(A.BW(10),B.o),l,l,l,l,l)
-n=s==null?"Login with Discord":"\ud83d\udc4b Welcome, displayName (Logout)"
+n=s==null?"Login with Discord":"\ud83d\udc4b Welcome, isplayName (Logout)"
 return A.ahv(r,B.yH,A.agu(A.Cy(A.c([q,p,new A.fd(B.dL,l,l,new A.ea(B.h8,A.pC(A.agv(A.Cy(A.c([A.a5O(n,A.ja(l,l,l,l,l,l,l,l,l,l,l,16,l,l,B.eh,l,l,!0,l,l,l,l,l,l,l,l),B.ae),A.pC(l,4,l),A.a5O("By logging in you must accept terms and service",A.ja(l,l,B.x,l,l,l,l,l,l,l,l,12,l,l,l,l,l,!0,l,l,l,l,l,l,l,l),B.ae)],k),B.qi),new A.a9V(m,s),o),70,1/0),l),l)],k),B.b4)))}}
 A.a9X.prototype={
 $1(a){var s=this.a

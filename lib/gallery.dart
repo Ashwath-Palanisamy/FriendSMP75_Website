@@ -192,7 +192,7 @@ class _GalleryState extends State<Gallery> {
                         Text(
                           user == null
                               ? "Login with Discord"
-                              : "👋 Welcome, displayName (Logout)",
+                              : "👋 Welcome, isplayName (Logout)",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
