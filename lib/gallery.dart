@@ -34,10 +34,11 @@ class _GalleryState extends State<Gallery> {
     if (user == null) return 'User';
     final meta = user.userMetadata;
 
-    
-    final rawUsername = meta?['username'];
+    final rawname = meta?['name'];
+    final rawusername = meta?['user_name'];
+    final rawuserName = meta?['username'];
 
-    dynamic candidate =rawUsername;
+    dynamic candidate = rawname ?? rawusername ?? rawuserName;
 
     if (candidate is String) return candidate;
     if (candidate is List && candidate.isNotEmpty) {
@@ -59,6 +60,15 @@ class _GalleryState extends State<Gallery> {
         reverseTransitionDuration: const Duration(seconds: 2),
       ),
     );
+  }
+
+  Future<void> _loginWithDiscord() async {
+    await supabase.auth.signInWithOAuth(OAuthProvider.discord);
+  }
+
+  Future<void> _logout() async {
+    await supabase.auth.signOut();
+    setState(() {});
   }
 
   @override
@@ -178,12 +188,9 @@ class _GalleryState extends State<Gallery> {
                     ),
                     onPressed: () async {
                       if (user == null) {
-                        await supabase.auth.signInWithOAuth(
-                          OAuthProvider.discord,
-                        );
+                        await _loginWithDiscord();
                       } else {
-                        await supabase.auth.signOut();
-                        setState(() {});
+                        await _logout();
                       }
                     },
                     child: Column(
@@ -192,7 +199,7 @@ class _GalleryState extends State<Gallery> {
                         Text(
                           user == null
                               ? "Login with Discord"
-                              : "👋 Welcome, isplayName (Logout)",
+                              : "Welcome, $displayname (Logout)",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,

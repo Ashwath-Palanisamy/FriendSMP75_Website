@@ -28,6 +28,25 @@ class _StatusState extends State<Status> {
     super.dispose();
   }
 
+  String _getUserData(User? user) {
+    if (user == null) return 'User';
+    final meta = user.userMetadata;
+
+    final rawName = meta?['name'];
+    final rawusername = meta?['username'];
+    final rawuserName = meta?['user_name'];
+
+    dynamic candidate = rawName ?? rawusername ?? rawuserName;
+
+    if (candidate is String) return candidate;
+    if (candidate is List && candidate.isNotEmpty) {
+      return candidate.first.toString();
+    }
+    if (candidate != null) return candidate.toString();
+
+    return 'User';
+  }
+
   Future<void> _navigateSafely(Widget page) async {
     await Future.delayed(const Duration(milliseconds: 200));
     if (!mounted) return;
@@ -41,8 +60,20 @@ class _StatusState extends State<Status> {
     );
   }
 
+  Future<void> _loginWithDiscord() async {
+    await supabase.auth.signInWithOAuth(OAuthProvider.discord);
+  }
+
+  Future<void> _logout() async {
+    await supabase.auth.signOut();
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
+    final user = supabase.auth.currentUser;
+    final displayname = _getUserData(user);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -138,29 +169,65 @@ class _StatusState extends State<Status> {
             ),
 
             // bottom login button
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 20),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple[400],
-                      foregroundColor: Colors.white,
-
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadiusGeometry.circular(10),
+            Column(
+              children: [
+                if (user!=null) 
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Text('Hello $displayname'),
+                  ),
+                
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: SizedBox(
+                      width: double.infinity,
+                      height: 70,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.deepPurple[400],
+                          foregroundColor: Colors.white,
+                
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadiusGeometry.circular(10),
+                          ),
+                        ),
+                        onPressed: () async {
+                          if (user == null) {
+                            await _loginWithDiscord();
+                          } else {
+                            await _logout();
+                          }
+                        },
+                        child: Column(
+                          children: [
+                            Text(
+                              user==null?
+                              "Login with Discord"
+                              : "Welcome, $displayname (logout)",
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              'By logging in you must accept to our terms and services',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.white70,
+                              ),
+                              textAlign: TextAlign.center,
+                              )
+                          ],
+                        ),
                       ),
                     ),
-                    onPressed: () async {
-                      Navigator.pop(context);
-                    },
-                    child: const Text("Login with Discord"),
                   ),
                 ),
-              ),
+              ],
             ),
           ],
         ),
