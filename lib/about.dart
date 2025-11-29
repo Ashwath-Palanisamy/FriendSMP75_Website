@@ -172,7 +172,7 @@ class _AboutState extends State<About> {
                 padding: const EdgeInsets.only(bottom: 20),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 70,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
@@ -188,10 +188,28 @@ class _AboutState extends State<About> {
                         await _logout();
                       }
                     },
-                    child: Text(
-                      user == null
-                          ? "Login with Discord"
-                          : "👋 Welcome, $displayName (Logout)",
+                    child: Column(
+                      children: [
+                        Text(
+                          user == null
+                              ? "Login with Discord"
+                              : "👋 Welcome, $displayName (Logout)",
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          'By logging in you must accept to terms and service',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
+                          textAlign: TextAlign.center,
+                        )
+                      ],
                     ),
                   ),
                 ),

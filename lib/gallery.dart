@@ -45,6 +45,8 @@ class _GalleryState extends State<Gallery> {
 
   @override
   Widget build(BuildContext context) {
+    final user = supabase.auth.currentUser;
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -94,7 +96,7 @@ class _GalleryState extends State<Gallery> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               color: Colors.purple,
               child: const Text(
-                'Current page: Status',
+                'Current page: Gallery',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 16),
               ),
@@ -146,18 +148,45 @@ class _GalleryState extends State<Gallery> {
                 padding: const EdgeInsets.only(bottom: 20),
                 child: SizedBox(
                   width: double.infinity,
-                  height: 50,
+                  height: 70,
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.deepPurple[400],
                       foregroundColor: Colors.white,
-
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadiusGeometry.circular(10),
+                        borderRadius: BorderRadius.circular(10),
                       ),
                     ),
-                    onPressed: () {},
-                    child: const Text("Login with Discord"),
+                    onPressed: () async {
+                      if (user == null) {
+                        await supabase.auth.signInWithOAuth(OAuthProvider.discord);
+                      } else {
+                        await supabase.auth.signOut();
+                        setState(() {});
+                      }
+                    },
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text(
+                          "Login with Discord",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          "By logging in you must accept terms and service",
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.white70,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
