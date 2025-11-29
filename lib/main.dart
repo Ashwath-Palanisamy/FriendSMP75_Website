@@ -6,7 +6,6 @@ import 'package:server_site/supabase_config.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await SupabaseConfig.init();
-  SupabaseConfig.startAuthListener((data) {});
   runApp(MyApp());
 }
 
@@ -20,6 +19,20 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  @override
+  void initState() {
+    super.initState();
+    SupabaseConfig.startAuthListener((authstate) {
+      setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    SupabaseConfig.stopAuthListener();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

@@ -6,6 +6,7 @@ import 'dart:async';
 class SupabaseConfig {
   static SupabaseClient? _client;
   static StreamSubscription<AuthState>? _authSub;
+  static bool _initialized = false;
 
   static SupabaseClient get client {
     if (_client == null) {
@@ -48,6 +49,7 @@ class SupabaseConfig {
 
   /// Initialize Supabase with fetched credentials
   static Future<void> init() async {
+    if (_initialized) return;
     final details = await fetchSupabaseDetails();
     if (details != null) {
       await Supabase.initialize(
@@ -70,5 +72,42 @@ class SupabaseConfig {
   static void stopAuthListener() {
     _authSub?.cancel();
     _authSub = null;
+  }
+
+  /// --- Helpers for user metadata ---
+
+  /// Get a safe display name from user metadata
+  static String getDisplayName(User? user) {
+    if (user == null) return 'User';
+    final meta = user.userMetadata;
+
+    final rawName = meta?['name'];
+    final rawUsername = meta?['username'];
+    final rawUserName = meta?['user_name'];
+
+    dynamic candidate = rawName ?? rawUsername ?? rawUserName;
+
+    if (candidate is String) return candidate;
+    if (candidate is List && candidate.isNotEmpty) {
+      return candidate.first.toString();
+    }
+    if (candidate != null) return candidate.toString();
+
+    return 'User';
+  }
+
+  /// Get avatar URL if provided by Discord OAuth
+  static String? getAvatarUrl(User? user) {
+    final meta = user?.userMetadata;
+    return meta?['avatar_url'] as String?;
+  }
+
+  /// Quick login/logout helpers
+  static Future<void> loginWithDiscord() async {
+    await client.auth.signInWithOAuth(OAuthProvider.discord);
+  }
+
+  static Future<void> logout() async {
+    await client.auth.signOut();
   }
 }

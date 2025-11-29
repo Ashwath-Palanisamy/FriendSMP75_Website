@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:server_site/gallery.dart';
 import 'package:server_site/status.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:server_site/supabase_config.dart';
 import 'dart:async';
 
 SupabaseClient get supabase => Supabase.instance.client;
@@ -46,39 +47,12 @@ class _AboutState extends State<About> {
     );
   }
 
-  Future<void> _loginWithDiscord() async {
-    await supabase.auth.signInWithOAuth(OAuthProvider.discord);
-  }
-
-  Future<void> _logout() async {
-    await supabase.auth.signOut();
-    setState(() {}); // refresh UI
-  }
-
-  /// Helper to safely extract display name
-  String _getUserData(User? user) {
-    if (user == null) return 'User';
-    final meta = user.userMetadata;
-
-    final rawName = meta?['name'];
-    final rawUserName = meta?['user_name'];
-    final rawUsername = meta?['username'];
-
-    dynamic candidate = rawName ?? rawUserName ?? rawUsername;
-
-    if (candidate is String) return candidate;
-    if (candidate is List && candidate.isNotEmpty) {
-      return candidate.first.toString();
-    }
-    if (candidate != null) return candidate.toString();
-
-    return 'User';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final user = supabase.auth.currentUser;
-    final displayName = _getUserData(user);
+    final user = SupabaseConfig.client.auth.currentUser;
+    final displayName = SupabaseConfig.getDisplayName(user);
+    final avatarUrl = SupabaseConfig.getAvatarUrl(user);
+
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
@@ -183,9 +157,9 @@ class _AboutState extends State<About> {
                     ),
                     onPressed: () async {
                       if (user == null) {
-                        await _loginWithDiscord();
+                        await SupabaseConfig.loginWithDiscord();
                       } else {
-                        await _logout();
+                        await SupabaseConfig.logout();
                       }
                     },
                     child: Column(
