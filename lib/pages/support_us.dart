@@ -14,9 +14,7 @@ class SupportUsPage extends StatefulWidget {
 }
 
 class _SupportUsPageState extends State<SupportUsPage> {
-  final String _adViewType = 'google-adsense-ad';
   final String _razorpayViewType = 'razorpay-donate-button';
-  final String _containerId = 'google-adsense-container';
   final String _razorpayContainerId = 'razorpay-button-container';
   static bool _viewsRegistered = false;
 
@@ -48,36 +46,6 @@ class _SupportUsPageState extends State<SupportUsPage> {
     if (_viewsRegistered) {
       return;
     }
-
-    // Register the View Factory for Google AdSense
-    ui.platformViewRegistry.registerViewFactory(_adViewType, (int viewId) {
-      final div = web.document.createElement('div') as web.HTMLDivElement;
-      div.id = _containerId;
-
-      div.style.setProperty('width', '100%');
-      div.style.setProperty('height', '100%');
-      div.style.setProperty('display', 'flex');
-      div.style.setProperty('justify-content', 'center');
-
-      final ins = web.document.createElement('ins') as web.HTMLElement;
-      ins.className = 'adsbygoogle';
-      ins.setAttribute('style', 'display:block');
-      ins.setAttribute('data-ad-client', 'ca-pub-2317643702082291');
-      ins.setAttribute('data-ad-slot', '6289746212');
-      ins.setAttribute('data-ad-format', 'auto');
-      ins.setAttribute('data-full-width-responsive', 'true');
-
-      div.append(ins);
-
-      // Push the ad
-      (web.window as dynamic).adsbygoogle =
-          (web.window as dynamic).adsbygoogle ?? [];
-      ((web.window as dynamic).adsbygoogle as dynamic).push(<String, dynamic>{
-        'google_ad_client': 'ca-pub-2317643702082291',
-      });
-
-      return div;
-    });
 
     ui.platformViewRegistry.registerViewFactory(_razorpayViewType, (
       int viewId,
@@ -111,8 +79,6 @@ class _SupportUsPageState extends State<SupportUsPage> {
 
   @override
   void dispose() {
-    final element = web.document.getElementById(_containerId);
-    element?.remove();
     final razorpayElement = web.document.getElementById(_razorpayContainerId);
     razorpayElement?.remove();
     super.dispose();
@@ -363,7 +329,13 @@ class _SupportUsPageState extends State<SupportUsPage> {
                                 borderRadius: BorderRadius.circular(14),
                                 border: Border.all(color: Colors.white12),
                               ),
-                              child: HtmlElementView(viewType: _adViewType),
+                              child: const Center(
+                                child: Text(
+                                  'Advertisements removed',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                              ),
                             ),
                           ),
                         ],

@@ -110,7 +110,15 @@ class _StaffDashboardState extends State<StaffDashboard> {
               },
               subText: 'Start, restart, and stop server operations.',
             ),
-        
+            DashboardTiles(
+              title: 'Staff Application',
+              color: Colors.orange,
+              onTap: () {
+                context.push('/staff/application');
+              },
+              subText: 'Open / close / review staff applications',
+              actionLabel: 'Open applications',
+            ),
           ],
         ),
       ],
