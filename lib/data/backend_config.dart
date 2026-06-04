@@ -163,19 +163,21 @@ class BackendData {
     return null;
   }
 
-  /// Retrieves tickets from the backend (maps to `public.tickets`).
-  static Future<List<Map<String, dynamic>>?> getTickets() async {
+  static Future<bool> getStaffAppStatus() async {
     try {
-      final result = await retrieveData('get-tickets', requireAuth: true);
-      if (result is List) {
-        return result.whereType<Map>().map((item) {
-          return item.map((key, value) => MapEntry(key.toString(), value));
-        }).toList();
+      final response = await retrieveData(
+        'staff-app-status',
+        requireAuth: false,
+      );
+      if (response != null && response is List && response.isNotEmpty) {
+        final config = response.first as Map<String, dynamic>;
+        return config['is_open'] ?? false;
       }
+      return false;
     } catch (e) {
-      debugPrint('Error fetching tickets: $e');
+      debugPrint('Error getting response $e');
+      return false;
     }
-    return null;
   }
 
   static Future<List<Map<String, dynamic>>?> getMemberMemoryRequests({
@@ -193,7 +195,7 @@ class BackendData {
 
       if (response.statusCode != 200) {
         print(
-          'Member memory requests error: ${response.statusCode} ${response.body}',
+          'My memory requests error: ${response.statusCode} ${response.body}',
         );
         return null;
       }
@@ -238,6 +240,31 @@ class BackendData {
       print('Error fetching staff memory requests: $e');
       return null;
     }
+  }
+
+  static Future<Map<String, dynamic>?> getStaffApplicationStatus() async {
+    try {
+      final response = await retrieveData(
+        'staff-application-check',
+        requireAuth: true,
+      );
+
+      if (response == null) return null;
+
+      if (response is List) {
+        if (response.isNotEmpty) {
+          return Map<String, dynamic>.from(response.first as Map);
+        }
+        return null;
+      }
+
+      if (response is Map) {
+        return Map<String, dynamic>.from(response);
+      }
+    } catch (e) {
+      debugPrint('Error parsing staff Application data: $e');
+    }
+    return null;
   }
 
   static Future<bool> updateMemoryRequestStatus({
@@ -289,10 +316,10 @@ class BackendData {
         {'method': 'PATCH', 'endpoint': 'staff-memory-request-action'},
         {'method': 'POST', 'endpoint': 'staff-memory-request-action'},
         {'method': 'PATCH', 'endpoint': 'memory-request-action'},
-        {'method': 'POST', 'endpoint': 'memory-request-action'},
+        {'method': 'POST', 'memory-request-action': 'memory-request-action'},
         {'method': 'PATCH', 'endpoint': 'memory-request-status'},
         {'method': 'POST', 'endpoint': 'memory-request-status'},
-        {'method': 'POST', 'endpoint': 'memory-request-$action'},
+        {'method': 'POST', 'memory-request-$action': 'memory-request-$action'},
       ];
 
       for (final attempt in endpointAttempts) {
@@ -427,7 +454,7 @@ class BackendData {
     String? senderName,
     String? senderDiscordId,
     String serverName = 'FriendSMP75',
-    bool? behalfOfStaff
+    bool? behalfOfStaff,
   }) async {
     try {
       final sentAt = DateTime.now().toUtc().toIso8601String();
@@ -444,11 +471,9 @@ class BackendData {
           ? senderDiscordId.trim()
           : 'Unknown';
 
-      final spacedMessage =
-          '\n\n${message.trim()}';
+      final spacedMessage = '\n\n${message.trim()}';
 
       final payload = <String, dynamic>{
-        // Keep aliases to support backend field variations.
         'recipient_discord_id': recipientDiscordId,
         'discord_id': recipientDiscordId,
         'recipient_uuid': recipientDiscordId,
@@ -461,7 +486,7 @@ class BackendData {
         'sent_at': sentAt,
         'server_name': serverName,
         'source_server': serverName,
-        'behalf_of_staff': behalfOfStaff
+        'behalf_of_staff': behalfOfStaff,
       };
 
       final response = await http.post(
@@ -490,7 +515,7 @@ class BackendData {
     String? senderName,
     String? senderDiscordId,
     String serverName = 'FriendSMP75',
-    bool? behalfOfStaff
+    bool? behalfOfStaff,
   }) async {
     int sentCount = 0;
     final failedIds = <String>[];
@@ -503,7 +528,7 @@ class BackendData {
         senderName: senderName,
         senderDiscordId: senderDiscordId,
         serverName: serverName,
-        behalfOfStaff: behalfOfStaff
+        behalfOfStaff: behalfOfStaff,
       );
 
       if (ok) {
@@ -528,7 +553,6 @@ class BackendData {
         'author_uuid': authorUUID,
       });
 
-      // Notify Discord webhook
       await notifyDiscordAnnouncement(
         title: title,
         body: body,
@@ -649,8 +673,6 @@ class BackendData {
   }
 
   // --- UPLOAD METHOD (WEB ONLY) ---
-  /// Uses imageBytes because 'path' is null on Web.
-  /// Sends as Multipart/form-data to satisfy Flask/Waitress.
   static Future<String?> uploadImage({
     required List<int> imageBytes,
     required String filename,
@@ -756,7 +778,7 @@ class BackendData {
         'memory-request-add',
         data: dio.FormData.fromMap(formDataMap),
         onSendProgress: (sent, total) {
-          if (onProgress != null && total > 0) {
+          if (onProgress != null && total > 8) {
             onProgress(sent / total);
           }
         },
@@ -798,6 +820,78 @@ class BackendData {
       return null;
     } catch (e) {
       return null;
+    }
+  }
+
+  static Future<dynamic> updateStaffAppStatus(bool status) async {
+    try {
+      final response = await http.patch(
+        Uri.parse('${backendUrl}update-staff-app-status'),
+        headers: _getHeaders(includeAuth: true),
+        body: jsonEncode({'is_open': status}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        debugPrint(
+          'Failed to update status. Status Code: ${response.statusCode}, Body: ${response.body}',
+        );
+        return null;
+      }
+    } catch (e) {
+      debugPrint('Error updating via endpoint: $e');
+      return null;
+    }
+  }
+
+  // --- 📝 STAFF APPLICATION PIPELINE HANDLERS ---
+
+  /// Requests form templates directly, then executes a client-side layout map query 
+  /// using profiles join architecture to assign custom Discord usernames seamlessly.
+static Future<List<dynamic>> fetchSubmittedApplications() async {
+  try {
+    final result = await retrieveData('get-submitted-applications', requireAuth: true);
+    if (result is List<dynamic>) {
+      return result
+          .map((application) => Map<String, dynamic>.from(application as Map))
+          .toList();
+    }
+  } catch (e) {
+    print('Backend architecture query error fetching applications: $e');
+  }
+  return [];
+}
+  /// Appends or changes a staff member's active assessment vote status (YES/NO) on a target form submission.
+  static Future<void> submitStaffVote(String appUid, String voteType) async {
+    try {
+      final response = await sendData('submit-staff-vote', {
+        'application_uid': appUid,
+        'vote_type': voteType,
+      });
+      if (response == null) {
+        throw Exception('Server rejected the staff evaluation action mapping matrix.');
+      }
+    } catch (e) {
+      print('Backend error processing vote pipeline entry context: $e');
+      throw Exception('Failed to register vote transaction context configuration.');
+    }
+  }
+
+  /// Concludes a review lifecycle by committing a final verdict resolution package along with its summary verification note.
+  static Future<void> finalizeStaffApplication(String appUid, String decision, String explanation) async {
+    try {
+      final response = await sendData('finalize-staff-application', {
+        'application_uid': appUid,
+        'status': decision,
+        'review_explanation': explanation,
+      });
+      if (response == null) {
+        throw Exception('Server rejected writing decision resolution parameters down to active state storage maps.');
+      }
+    } catch (e) {
+      print('Backend error committing final resolution structural block payload: $e');
+      throw Exception('Failed to finalize applicant record routing.');
     }
   }
 }

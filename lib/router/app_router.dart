@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:server_site/pages/dashboards/subpage/member/memories_request.dart';
+import 'package:server_site/pages/dashboards/subpage/member/staff_application_apply.dart';
+import 'package:server_site/pages/dashboards/subpage/staff/staff_application.dart';
 import 'package:server_site/pages/dashboards/subpage/staff/staff_server_access.dart';
 import 'package:server_site/pages/home.dart';
 import 'package:server_site/pages/about.dart';
@@ -303,6 +305,42 @@ class AppRouter {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const StaffServerAccess(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      GoRoute(
+        path: '/staff/application',
+        name: 'staff-application',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const StaffApplication(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      GoRoute(
+        path: '/member/application',
+        name: 'staff-application-apply',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          key: state.pageKey,
+          child: const StaffApplicationApply(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(

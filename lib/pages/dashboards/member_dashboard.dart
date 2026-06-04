@@ -14,6 +14,7 @@ class _MemberDashboardState extends State<MemberDashboard> {
   Widget build(BuildContext context) {
     final width = MediaQuery.sizeOf(context).width;
     final bool isMobile = width < 700;
+    final bool isTablet = width >= 700 && width < 1080;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -44,10 +45,18 @@ class _MemberDashboardState extends State<MemberDashboard> {
         ),
 
         GridView.count(
-          crossAxisCount: 1,
+          crossAxisCount: isMobile
+              ? 1
+              : isTablet
+              ? 2
+              : 3,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          childAspectRatio: isMobile ? 2.2 : 3.6,
+          childAspectRatio: isMobile
+              ? 1.95
+              : isTablet
+              ? 1.35
+              : 1.4,
           padding: const EdgeInsets.all(8),
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -62,6 +71,17 @@ class _MemberDashboardState extends State<MemberDashboard> {
               },
               subText:
                   'Request staff to review and add your community memory to the public gallery.',
+            ),
+            DashboardTiles(
+              title: 'Staff applications',
+              color: const Color(0xFF6B5B95),
+              icon: Icons.badge_rounded,
+              actionLabel: 'Open',
+              onTap: () {
+                context.go('/member/application');
+              },
+              subText:
+                  'View and submit applications for staff opportunities and review updates.',
             ),
           ],
         ),
