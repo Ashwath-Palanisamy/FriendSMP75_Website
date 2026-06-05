@@ -86,7 +86,7 @@ class _StaffApplicationState extends State<StaffApplication> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registered your $voteType evaluation vote.')),
+        SnackBar(content: Text('Registered your $voteType evaluation vote.',style: TextStyle(color: Colors.white),)),
       );
     } catch (e) {
       debugPrint('Error routing vote interaction through backend context: $e');
@@ -100,6 +100,7 @@ class _StaffApplicationState extends State<StaffApplication> {
         const SnackBar(
           content: Text(
             'Please enter an explanation before finalizing decisions.',
+            style: TextStyle(color: Colors.white)
           ),
         ),
       );
@@ -118,6 +119,7 @@ class _StaffApplicationState extends State<StaffApplication> {
         SnackBar(
           content: Text(
             'Application has been successfully marked as $decision.',
+            style: TextStyle(color: Colors.white)
           ),
         ),
       );
