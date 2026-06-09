@@ -24,7 +24,7 @@ jobs:
           flutter-version: "3.38.5"
 
       - name: Build Flutter Web
-        run: flutter build web --release --dart-define=ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }}
+        run: flutter build web --release --dart-define=ACCESS_TOKEN=${{ secrets.ACCESS_TOKEN }} --wasm
 
       - name: Skip deploy on forked PR
         if: ${{ github.event.pull_request.head.repo.fork }}
