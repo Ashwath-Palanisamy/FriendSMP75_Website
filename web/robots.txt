@@ -1,33 +1,17 @@
-# FriendSMP75 SEO Robots Configuration
-# Allow all crawlers full access
+# ==========================================
+# FriendSMP75 Official Robots Configuration
+# ==========================================
+
 User-agent: *
-Allow: /
-Disallow: 
-
-# Specific crawler optimizations
-User-agent: Googlebot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Bingbot
-Allow: /
-Crawl-delay: 0
-
-User-agent: Slurp
+# Allow indexing of public community hub pages
 Allow: /
 
-# Prevent crawling of unnecessary paths
-User-agent: *
+# Prevent indexing of private staff administration portals
+Disallow: /staff/
+
+# Prevent crawling of build relics and source maps
 Disallow: /build/
 Disallow: /*.map
 
-# Sitemap location for all crawlers
+# Sitemap location for all compliant search crawlers
 Sitemap: https://friendsmp75.vercel.app/sitemap.xml
-Sitemap: https://friendsmp75.vercel.app/sitemap.xml
-
-# Search engine directives
-User-agent: *
-Allow: /
-
-# Crawl-delay and request-rate (in requests/sec)
-Request-rate: 1/1
