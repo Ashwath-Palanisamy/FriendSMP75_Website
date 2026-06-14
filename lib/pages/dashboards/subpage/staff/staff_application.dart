@@ -46,7 +46,6 @@ class _StaffApplicationState extends State<StaffApplication> {
         });
       }
     } catch (e) {
-      // Suppress schema cache misses (e.g. public.profiles not found)
       if (!e.toString().contains('PGRST205')) {
         debugPrint('Error loading owner configuration parameters: $e');
       }
@@ -86,7 +85,7 @@ class _StaffApplicationState extends State<StaffApplication> {
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Registered your $voteType evaluation vote.')),
+        SnackBar(content: Text('Registered your $voteType evaluation vote.',style: TextStyle(color: Colors.white),)),
       );
     } catch (e) {
       debugPrint('Error routing vote interaction through backend context: $e');
@@ -100,6 +99,7 @@ class _StaffApplicationState extends State<StaffApplication> {
         const SnackBar(
           content: Text(
             'Please enter an explanation before finalizing decisions.',
+            style: TextStyle(color: Colors.white)
           ),
         ),
       );
@@ -118,6 +118,7 @@ class _StaffApplicationState extends State<StaffApplication> {
         SnackBar(
           content: Text(
             'Application has been successfully marked as $decision.',
+            style: TextStyle(color: Colors.white)
           ),
         ),
       );
@@ -481,313 +482,290 @@ class _StaffApplicationState extends State<StaffApplication> {
                       ),
                     ),
                     const SizedBox(height: 12),
-                    FutureBuilder<bool>(
-                      future: _appStatusFuture,
-                      builder: (context, statusSnapshot) {
-                        final isOpen = statusSnapshot.data ?? false;
-                        if (!isOpen) {
-                          return Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.01),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.white12),
-                            ),
-                            child: const Center(
-                              child: Text(
-                                'Applications must be open to process reviews.',
-                                style: TextStyle(color: Colors.white38),
-                              ),
+                    FutureBuilder<List<dynamic>>(
+                      future: _applicationsFuture,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+                        final data = snapshot.data ?? [];
+                        if (data.isEmpty) {
+                          return const Padding(
+                            padding: EdgeInsets.all(20.0),
+                            child: Center(
+                              child: Text('No applications submitted yet.'),
                             ),
                           );
                         }
-                        return FutureBuilder<List<dynamic>>(
-                          future: _applicationsFuture,
-                          builder: (context, snapshot) {
-                            if (snapshot.connectionState ==
-                                ConnectionState.waiting) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-                            final data = snapshot.data ?? [];
-                            if (data.isEmpty) {
-                              return const Padding(
-                                padding: EdgeInsets.all(20.0),
-                                child: Center(
-                                  child: Text('No applications submitted yet.'),
-                                ),
-                              );
-                            }
-                            return ListView.separated(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: data.length,
-                              separatorBuilder: (context, index) =>
-                                  const SizedBox(height: 12),
-                              itemBuilder: (context, index) {
-                                final app =
-                                    data[index] as Map<String, dynamic>;
-                                final String appUid = app['user_id'] ?? '';
-                                final dynamic rawAnswers =
-                                    app['answers'] ?? '[]';
-                                final String currentStatus =
-                                    app['status'] ?? 'pending';
+                        return ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: data.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final app =
+                                data[index] as Map<String, dynamic>;
+                            final String appUid = app['user_id'] ?? '';
+                            final dynamic rawAnswers =
+                                app['answers'] ?? '[]';
+                            final String currentStatus =
+                                app['status'] ?? 'pending';
 
-                                final List<dynamic> answersList =
-                                    (rawAnswers is String)
-                                    ? jsonDecode(rawAnswers)
-                                    : rawAnswers;
-                                final userField = answersList.firstWhere(
-                                  (item) =>
-                                      item is Map &&
-                                      (item['label'] ?? '').toLowerCase() ==
-                                          'username',
-                                  orElse: () => {'value': 'Unknown Candidate'},
-                                );
-                                final String username =
-                                    userField['value']?.toString() ??
-                                    'Unknown Candidate';
+                            final List<dynamic> answersList =
+                                (rawAnswers is String)
+                                ? jsonDecode(rawAnswers)
+                                : rawAnswers;
+                            final userField = answersList.firstWhere(
+                              (item) =>
+                                  item is Map &&
+                                  (item['label'] ?? '').toLowerCase() ==
+                                      'username',
+                              orElse: () => {'value': 'Unknown Candidate'},
+                            );
+                            final String username =
+                                userField['value']?.toString() ??
+                                'Unknown Candidate';
 
-                                final List<dynamic> yesVotesList =
-                                    app['voted_yes_uids'] ?? [];
-                                final List<dynamic> noVotesList =
-                                    app['voted_no_uids'] ?? [];
-                                final int yesVotes = yesVotesList.length;
-                                final int noVotes = noVotesList.length;
+                            final List<dynamic> yesVotesList =
+                                app['voted_yes_uids'] ?? [];
+                            final List<dynamic> noVotesList =
+                                app['voted_no_uids'] ?? [];
+                            final int yesVotes = yesVotesList.length;
+                            final int noVotes = noVotesList.length;
 
-                                final bool hasVotedYes =
-                                    yesVotesList.contains(user.id);
-                                final bool hasVotedNo =
-                                    noVotesList.contains(user.id);
+                            final bool hasVotedYes =
+                                yesVotesList.contains(user.id);
+                            final bool hasVotedNo =
+                                noVotesList.contains(user.id);
 
-                                _explanationControllers.putIfAbsent(
-                                  appUid,
-                                  () => TextEditingController(),
-                                );
+                            _explanationControllers.putIfAbsent(
+                              appUid,
+                              () => TextEditingController(),
+                            );
 
-                                return Container(
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFF111E2F),
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: Colors.white12),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  child: ExpansionTile(
-                                    childrenPadding:
-                                        const EdgeInsets.all(16),
-                                    collapsedBackgroundColor:
-                                        Colors.transparent,
-                                    backgroundColor: Colors.transparent,
-                                    iconColor: Colors.white54,
-                                    collapsedIconColor: Colors.white38,
-                                    // ── Collapsed header ─────────────────
-                                    title: Row(
-                                      children: [
-                                        if (currentStatus != 'pending') ...[
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: currentStatus == 'APPROVED'
-                                                  ? Colors.green.withValues(
-                                                      alpha: 0.2,
-                                                    )
-                                                  : Colors.red.withValues(
-                                                      alpha: 0.2,
-                                                    ),
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                            ),
-                                            child: Text(
-                                              currentStatus,
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.bold,
-                                                color: currentStatus ==
-                                                        'APPROVED'
-                                                    ? Colors.greenAccent
-                                                    : Colors.redAccent,
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                        ],
-                                        Text(
-                                          username,
-                                          style: const TextStyle(
-                                            fontSize: 16,
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: const Color(0xFF111E2F),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: Colors.white12),
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: ExpansionTile(
+                                childrenPadding:
+                                    const EdgeInsets.all(16),
+                                collapsedBackgroundColor:
+                                    Colors.transparent,
+                                backgroundColor: Colors.transparent,
+                                iconColor: Colors.white54,
+                                collapsedIconColor: Colors.white38,
+                                // ── Collapsed header ─────────────────
+                                title: Row(
+                                  children: [
+                                    if (currentStatus != 'pending') ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: currentStatus == 'APPROVED'
+                                              ? Colors.green.withValues(
+                                                  alpha: 0.2,
+                                                )
+                                              : Colors.red.withValues(
+                                                  alpha: 0.2,
+                                                ),
+                                          borderRadius:
+                                              BorderRadius.circular(4),
+                                        ),
+                                        child: Text(
+                                          currentStatus,
+                                          style: TextStyle(
+                                            fontSize: 10,
                                             fontWeight: FontWeight.bold,
-                                            color: Colors.white,
+                                            color: currentStatus ==
+                                                    'APPROVED'
+                                                ? Colors.greenAccent
+                                                : Colors.redAccent,
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    subtitle: Text(
-                                      'UUID: $appUid',
+                                      ),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    Text(
+                                      username,
                                       style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.white38,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
                                       ),
                                     ),
-                                    // ── Animated arrow + vote count ───────
-                                    trailing: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          '+$yesVotes / -$noVotes',
-                                          style: const TextStyle(
-                                            color: Colors.white70,
-                                            fontSize: 13,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 4),
-                                      ],
+                                  ],
+                                ),
+                                subtitle: Text(
+                                  'UUID: $appUid',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white38,
+                                  ),
+                                ),
+                                // ── Animated arrow + vote count ───────
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      '+$yesVotes / -$noVotes',
+                                      style: const TextStyle(
+                                        color: Colors.white70,
+                                        fontSize: 13,
+                                      ),
                                     ),
-                                    // Default trailing arrow is kept (animated)
-                                    // ── Expanded content ──────────────────
-                                    children: [
-                                      const Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Text(
-                                          'Form Answers:',
+                                    const SizedBox(width: 4),
+                                  ],
+                                ),
+                                // Default trailing arrow is kept (animated)
+                                // ── Expanded content ──────────────────
+                                children: [
+                                  const Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      'Form Answers:',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.blueAccent,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  ..._buildUserAnswers(rawAnswers),
+                                  const Divider(
+                                    color: Colors.white12,
+                                    height: 24,
+                                  ),
+                                  if (isOwner) ...[
+                                    const Row(
+                                      children: [
+                                        Icon(
+                                          Icons.groups_rounded,
+                                          color: Colors.amberAccent,
+                                          size: 20,
+                                        ),
+                                        SizedBox(width: 6),
+                                        Text(
+                                          'Staff Team Review',
                                           style: TextStyle(
                                             fontSize: 14,
                                             fontWeight: FontWeight.bold,
+                                            color: Colors.amberAccent,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    TextField(
+                                      controller:
+                                          _explanationControllers[appUid],
+                                      maxLines: 2,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            'Provide the official staff team reasoning/explanation...',
+                                        hintStyle: const TextStyle(
+                                          color: Colors.white38,
+                                          fontSize: 13,
+                                        ),
+                                        filled: true,
+                                        fillColor: Colors.black12,
+                                        contentPadding:
+                                            const EdgeInsets.all(12),
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: const BorderSide(
+                                            color: Colors.white24,
+                                          ),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          borderSide: const BorderSide(
                                             color: Colors.blueAccent,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      ..._buildUserAnswers(rawAnswers),
-                                      const Divider(
-                                        color: Colors.white12,
-                                        height: 24,
-                                      ),
-                                      if (isOwner) ...[
-                                        const Row(
-                                          children: [
-                                            Icon(
-                                              Icons.groups_rounded,
-                                              color: Colors.amberAccent,
-                                              size: 20,
-                                            ),
-                                            SizedBox(width: 6),
-                                            Text(
-                                              'Staff Team Review',
-                                              style: TextStyle(
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.amberAccent,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 8),
-                                        TextField(
-                                          controller:
-                                              _explanationControllers[appUid],
-                                          maxLines: 2,
-                                          style: const TextStyle(
-                                            color: Colors.white,
-                                            fontSize: 14,
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.end,
+                                      children: [
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.green
+                                                .withValues(alpha: 0.15),
+                                            foregroundColor:
+                                                Colors.greenAccent,
                                           ),
-                                          decoration: InputDecoration(
-                                            hintText:
-                                                'Provide the official staff team reasoning/explanation...',
-                                            hintStyle: const TextStyle(
-                                              color: Colors.white38,
-                                              fontSize: 13,
-                                            ),
-                                            filled: true,
-                                            fillColor: Colors.black12,
-                                            contentPadding:
-                                                const EdgeInsets.all(12),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: Colors.white24,
-                                              ),
-                                            ),
-                                            focusedBorder: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                              borderSide: const BorderSide(
-                                                color: Colors.blueAccent,
-                                              ),
-                                            ),
+                                          onPressed: () => _finalDecision(
+                                            appUid,
+                                            'APPROVED',
                                           ),
+                                          icon: const Icon(
+                                            Icons.check,
+                                            size: 16,
+                                          ),
+                                          label: const Text('Approve'),
                                         ),
-                                        const SizedBox(height: 12),
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.end,
-                                          children: [
-                                            ElevatedButton.icon(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.green
-                                                    .withValues(alpha: 0.15),
-                                                foregroundColor:
-                                                    Colors.greenAccent,
-                                              ),
-                                              onPressed: () => _finalDecision(
-                                                appUid,
-                                                'APPROVED',
-                                              ),
-                                              icon: const Icon(
-                                                Icons.check,
-                                                size: 16,
-                                              ),
-                                              label: const Text('Approve'),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            ElevatedButton.icon(
-                                              style: ElevatedButton.styleFrom(
-                                                backgroundColor: Colors.red
-                                                    .withValues(alpha: 0.15),
-                                                foregroundColor:
-                                                    Colors.redAccent,
-                                              ),
-                                              onPressed: () => _finalDecision(
-                                                appUid,
-                                                'DENIED',
-                                              ),
-                                              icon: const Icon(
-                                                Icons.close,
-                                                size: 16,
-                                              ),
-                                              label: const Text('Deny'),
-                                            ),
-                                          ],
-                                        ),
-                                      ] else ...[
-                                        Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.spaceBetween,
-                                          children: [
-                                            const Text(
-                                              'Cast Your Vote:',
-                                              style: TextStyle(
-                                                color: Colors.white54,
-                                                fontSize: 13,
-                                              ),
-                                            ),
-                                            _buildVoteButtons(
-                                              appUid,
-                                              hasVotedYes,
-                                              hasVotedNo,
-                                            ),
-                                          ],
+                                        const SizedBox(width: 8),
+                                        ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.red
+                                                .withValues(alpha: 0.15),
+                                            foregroundColor:
+                                                Colors.redAccent,
+                                          ),
+                                          onPressed: () => _finalDecision(
+                                            appUid,
+                                            'DENIED',
+                                          ),
+                                          icon: const Icon(
+                                            Icons.close,
+                                            size: 16,
+                                          ),
+                                          label: const Text('Deny'),
                                         ),
                                       ],
-                                    ],
-                                  ),
-                                );
-                              },
+                                    ),
+                                  ] else ...[
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        const Text(
+                                          'Cast Your Vote:',
+                                          style: TextStyle(
+                                            color: Colors.white54,
+                                            fontSize: 13,
+                                          ),
+                                        ),
+                                        _buildVoteButtons(
+                                          appUid,
+                                          hasVotedYes,
+                                          hasVotedNo,
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ],
+                              ),
                             );
                           },
                         );
