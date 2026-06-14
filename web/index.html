@@ -22,7 +22,6 @@
   
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;800&display=swap" rel="stylesheet">
   <link rel="dns-prefetch" href="https://www.google-analytics.com">
   <link rel="prefetch" href="flutter_bootstrap.js" as="script">
   
@@ -107,6 +106,7 @@
   </script>
 
   <style>
+    /* Core Web Vitals Optimization */
     html {
       scroll-behavior: smooth;
       min-height: 100%;
@@ -121,117 +121,61 @@
       background: #0b1320;
     }
 
+    /* Original Fullscreen loading screen style */
     #loading {
       position: fixed;
       top: 0; left: 0;
       width: 100%; height: 100%;
-      background: #0b1320; 
+      background: #121212; 
       display: flex;
-      flex-direction: column;
       align-items: center;
       justify-content: center;
-      color: #ffffff;
-      font-family: 'Poppins', Arial, sans-serif;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      font-size: 1.5em;
       z-index: 9999;
       opacity: 1;
-      transition: opacity 0.6s ease-in-out;
+      transition: opacity 0.8s ease; 
     }
 
+    /* Hidden state */
     #loading.fade-out {
       opacity: 0;
       pointer-events: none;
     }
 
-    #loading-text {
-      font-weight: 800;
-      font-size: 1.5em;
-      letter-spacing: 0.5px;
-      margin-top: 40px;
-      text-align: center;
-      text-transform: uppercase;
-      color: #f0f4f8;
+    /* Spinner style */
+    .spinner {
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #4CAF50;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      animation: spin 1s linear infinite;
+      margin-right: 15px;
     }
 
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Tick style */
     .tick {
       display: none;
-      font-size: 3.5em;
-      color: #55ff55;
+      font-size: 2em;
+      color: #4CAF50;
+      margin-right: 15px;
     }
 
     .tick.show {
-      display: block;
-      animation: flatPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2) forwards;
+      display: inline-block;
+      animation: pop 0.3s ease forwards;
     }
 
-    @keyframes flatPop {
+    @keyframes pop {
       0% { transform: scale(0); opacity: 0; }
       100% { transform: scale(1); opacity: 1; }
-    }
-
-    /* Unique Flat CSS Minecraft Running Animation Track */
-    .run-track {
-      position: relative;
-      width: 180px;
-      height: 90px;
-      display: flex;
-      align-items: flex-end;
-      justify-content: center;
-      gap: 30px;
-      border-bottom: 4px solid #1c2e4a;
-    }
-
-    .mc-player {
-      position: relative;
-      width: 24px;
-      height: 64px;
-      transform-origin: bottom center;
-      animation: bodyBob 0.35s infinite ease-in-out;
-    }
-
-    .alex-char { animation-delay: -0.12s; }
-
-    .p-head, .p-body, .p-limb {
-      position: absolute;
-      image-rendering: pixelated;
-    }
-
-    .p-head { width: 20px; height: 20px; top: 0; left: 2px; }
-    .p-body { width: 16px; height: 24px; top: 20px; left: 4px; }
-    .p-limb { width: 8px; height: 22px; transform-origin: top center; }
-    .p-arm { top: 20px; left: 8px; }
-    .p-leg { top: 44px; left: 8px; }
-
-    .swing-forward { animation: limbSwingForward 0.35s infinite linear; }
-    .swing-backward { animation: limbSwingBackward 0.35s infinite linear; }
-    .alex-char .p-limb { animation-delay: -0.12s; }
-
-    /* Steve Color Matrix */
-    .steve-char .p-head { background: #c68c53; border-top: 6px solid #4a2f13; border-right: 4px solid #4a2f13; }
-    .steve-char .p-body { background: #00cccc; }
-    .steve-char .p-arm.swing-forward { background: #00cccc; border-bottom: 8px solid #c68c53; }
-    .steve-char .p-arm.swing-backward { background: #00aaaa; border-bottom: 8px solid #b37d4a; }
-    .steve-char .p-leg.swing-forward { background: #3333cc; }
-    .steve-char .p-leg.swing-backward { background: #222299; }
-
-    /* Alex Color Matrix */
-    .alex-char .p-head { background: #e0ac69; border-top: 5px solid #d97426; border-left: 5px solid #d97426; }
-    .alex-char .p-body { background: #5c8a29; }
-    .alex-char .p-arm.swing-forward { background: #5c8a29; border-bottom: 8px solid #e0ac69; }
-    .alex-char .p-arm.swing-backward { background: #46691f; border-bottom: 8px solid #c69453; }
-    .alex-char .p-leg.swing-forward { background: #7a5230; }
-    .alex-char .p-leg.swing-backward { background: #5c3d24; }
-
-    @keyframes bodyBob {
-      0%, 100% { transform: translateY(0) scaleY(1); }
-      50% { transform: translateY(-5px) scaleY(0.98); }
-    }
-    @keyframes limbSwingForward {
-      0%, 100% { transform: rotate(-35deg); }
-      50% { transform: rotate(35deg); }
-    }
-    @keyframes limbSwingBackward {
-      0%, 100% { transform: rotate(35deg); }
-      50% { transform: rotate(-35deg); }
     }
   </style>
 </head>
@@ -277,27 +221,9 @@
   </main>
 
   <div id="loading">
-    <div class="run-track" id="visual-loader">
-      <div class="mc-player steve-char">
-        <div class="p-head"></div>
-        <div class="p-limb p-arm swing-backward"></div>
-        <div class="p-body"></div>
-        <div class="p-limb p-arm swing-forward"></div>
-        <div class="p-limb p-leg swing-forward"></div>
-        <div class="p-limb p-leg swing-backward"></div>
-      </div>
-      <div class="mc-player alex-char">
-        <div class="p-head"></div>
-        <div class="p-limb p-arm swing-forward"></div>
-        <div class="p-body"></div>
-        <div class="p-limb p-arm swing-backward"></div>
-        <div class="p-limb p-leg swing-backward"></div>
-        <div class="p-limb p-leg swing-forward"></div>
-      </div>
-    </div>
-    
-    <div class="tick" id="success-tick">✔</div>
-    <div id="loading-text">Connecting to FriendSMP75</div>
+    <div class="spinner"></div>
+    <div class="tick">✔</div>
+    <div> Welcome to FriendSMP75</div>
   </div>
 
   <script src="flutter_bootstrap.js" async></script>
@@ -308,24 +234,21 @@
       const fallback = document.getElementById('seo-fallback');
       if (fallback) { fallback.remove(); }
 
-      const loaderContainer = document.getElementById('loading');
-      if (!loaderContainer) return;
+      const loader = document.getElementById('loading');
+      if (!loader) { return; }
 
-      const visualLoader = document.getElementById('visual-loader');
-      const tick = document.getElementById('success-tick');
-      const text = document.getElementById('loading-text');
+      const spinner = loader.querySelector('.spinner');
+      const tick = loader.querySelector('.tick');
 
-      if (visualLoader) visualLoader.style.display = 'none';
-      if (tick) tick.classList.add('show');
-      if (text) {
-        text.innerHTML = "Welcome back!";
-        text.style.color = "#55ff55";
-      }
+      // Hide spinner, show tick
+      if (spinner) { spinner.style.display = 'none'; }
+      if (tick) { tick.classList.add('show'); }
 
+      // Wait a moment to show the tick, then fade out
       setTimeout(() => {
-        loaderContainer.classList.add('fade-out');
-        loaderContainer.addEventListener('transitionend', () => loaderContainer.remove(), { once: true });
-      }, 700);
+        loader.classList.add('fade-out');
+        loader.addEventListener('transitionend', () => loader.remove(), { once: true });
+      }, 800); // show tick for 0.8s
     });
   </script>
 </body>
