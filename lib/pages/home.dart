@@ -24,7 +24,7 @@ class _HomeState extends State<Home> {
   StreamSubscription<AuthState>? _authSub;
   List<dynamic> announcements = [];
   Map<String, dynamic> announcement = {};
-  static const String _serverIp = 'friendsmp75.mcgg.nl';
+  static const String _serverIp = 'friendsmp75.xubi.org';
   static const String _discordUrl = 'https://discord.gg/K8ucVvjfge';
 
   @override
