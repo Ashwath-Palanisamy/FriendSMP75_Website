@@ -67,7 +67,7 @@ class _MemberDashboardState extends State<MemberDashboard> {
               icon: Icons.auto_stories_rounded,
               actionLabel: 'Request',
               onTap: () {
-                context.push('/memories_request');
+                context.go('/member/memories_request');
               },
               subText:
                   'Request staff to review and add your community memory to the public gallery.',
@@ -82,6 +82,17 @@ class _MemberDashboardState extends State<MemberDashboard> {
               },
               subText:
                   'View and submit applications for staff opportunities and review updates.',
+            ),
+            DashboardTiles(
+              title: 'Punishment List',
+              color: Colors.red,
+              icon: Icons.shield_rounded,
+              actionLabel: 'Check it',
+              onTap: () {
+                context.go('/member/punishment-history');
+              },
+              subText:
+                  'Check your punishment history or others player\'s punishment history',
             ),
           ],
         ),

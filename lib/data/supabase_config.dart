@@ -54,7 +54,7 @@ class SupabaseConfig {
     if (_initialized) return;
     final details = await fetchSupabaseDetails();
     if (details != null) {
-      await Supabase.initialize(url: details['url']!, anonKey: details['key']!);
+      await Supabase.initialize(url: details['url']!, publishableKey: details['key']!);
       _client = Supabase.instance.client;
       print("Supabase initialized with backend credentials");
     } else {
