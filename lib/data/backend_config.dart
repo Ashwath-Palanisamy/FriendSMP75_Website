@@ -267,6 +267,49 @@ class BackendData {
     return null;
   }
 
+static Future<Map<String, dynamic>?> getPunishmentsForPlayer(String username) async {
+  try {
+    final dynamic responseData = await retrieveData(
+      'punishment-history?username=${Uri.encodeComponent(username)}',
+      requireAuth: true,
+    );
+
+    if (responseData == null) {
+      print('Backend returned null for punishments.');
+      return null;
+    }
+
+    if (responseData is Map<String, dynamic>) {
+      return {
+        'username': responseData['username'] ?? username,
+        'player_uuid': responseData['player_uuid'] ?? '',
+        'total_warnings': responseData['total_warnings'] ?? 0,
+        'total_punishments': responseData['total_punishments'] ?? 0,
+        'records': responseData['records'] as List<dynamic>? ?? [],
+      };
+    }
+
+    // Fallback if backend returns a  raw list of records
+    if (responseData is List<dynamic>) {
+      final int warningsCount = responseData
+          .where((item) => item is Map && item['category'] == 'WARNING')
+          .length;
+      final int punishmentsCount = responseData.length - warningsCount;
+
+      return {
+        'username': username,
+        'player_uuid': '',
+        'total_warnings': warningsCount,
+        'total_punishments': punishmentsCount,
+        'records': responseData,
+      };
+    }
+  } catch (e) {
+    print('Error contacting backend for punishments: $e');
+  }
+  return null;
+}
+
   static Future<bool> updateMemoryRequestStatus({
     required Map<String, dynamic> request,
     required bool approved,
@@ -847,21 +890,25 @@ class BackendData {
 
   // --- 📝 STAFF APPLICATION PIPELINE HANDLERS ---
 
-  /// Requests form templates directly, then executes a client-side layout map query 
+  /// Requests form templates directly, then executes a client-side layout map query
   /// using profiles join architecture to assign custom Discord usernames seamlessly.
-static Future<List<dynamic>> fetchSubmittedApplications() async {
-  try {
-    final result = await retrieveData('get-submitted-applications', requireAuth: true);
-    if (result is List<dynamic>) {
-      return result
-          .map((application) => Map<String, dynamic>.from(application as Map))
-          .toList();
+  static Future<List<dynamic>> fetchSubmittedApplications() async {
+    try {
+      final result = await retrieveData(
+        'get-submitted-applications',
+        requireAuth: true,
+      );
+      if (result is List<dynamic>) {
+        return result
+            .map((application) => Map<String, dynamic>.from(application as Map))
+            .toList();
+      }
+    } catch (e) {
+      print('Backend architecture query error fetching applications: $e');
     }
-  } catch (e) {
-    print('Backend architecture query error fetching applications: $e');
+    return [];
   }
-  return [];
-}
+
   /// Appends or changes a staff member's active assessment vote status (YES/NO) on a target form submission.
   static Future<void> submitStaffVote(String appUid, String voteType) async {
     try {
@@ -870,16 +917,24 @@ static Future<List<dynamic>> fetchSubmittedApplications() async {
         'vote_type': voteType,
       });
       if (response == null) {
-        throw Exception('Server rejected the staff evaluation action mapping matrix.');
+        throw Exception(
+          'Server rejected the staff evaluation action mapping matrix.',
+        );
       }
     } catch (e) {
       print('Backend error processing vote pipeline entry context: $e');
-      throw Exception('Failed to register vote transaction context configuration.');
+      throw Exception(
+        'Failed to register vote transaction context configuration.',
+      );
     }
   }
 
   /// Concludes a review lifecycle by committing a final verdict resolution package along with its summary verification note.
-  static Future<void> finalizeStaffApplication(String appUid, String decision, String explanation) async {
+  static Future<void> finalizeStaffApplication(
+    String appUid,
+    String decision,
+    String explanation,
+  ) async {
     try {
       final response = await sendData('finalize-staff-application', {
         'application_uid': appUid,
@@ -887,11 +942,16 @@ static Future<List<dynamic>> fetchSubmittedApplications() async {
         'review_explanation': explanation,
       });
       if (response == null) {
-        throw Exception('Server rejected writing decision resolution parameters down to active state storage maps.');
+        throw Exception(
+          'Server rejected writing decision resolution parameters down to active state storage maps.',
+        );
       }
     } catch (e) {
-      print('Backend error committing final resolution structural block payload: $e');
+      print(
+        'Backend error committing final resolution structural block payload: $e',
+      );
       throw Exception('Failed to finalize applicant record routing.');
     }
   }
+
 }

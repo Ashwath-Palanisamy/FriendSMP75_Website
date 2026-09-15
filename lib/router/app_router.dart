@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:server_site/pages/dashboards/subpage/member/memories_request.dart';
+import 'package:server_site/pages/dashboards/subpage/member/punishment_history.dart';
 import 'package:server_site/pages/dashboards/subpage/member/staff_application_apply.dart';
 import 'package:server_site/pages/dashboards/subpage/staff/staff_application.dart';
 import 'package:server_site/pages/dashboards/subpage/staff/staff_server_access.dart';
@@ -263,7 +264,7 @@ class AppRouter {
           },
         ),
       ),
-      
+
       GoRoute(
         path: '/staff/dm-broadcast',
         name: 'staff-dm-broadcast',
@@ -282,7 +283,7 @@ class AppRouter {
         ),
       ),
       GoRoute(
-        path: '/memories_request',
+        path: '/member/memories_request',
         name: 'memories_request',
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
@@ -341,6 +342,23 @@ class AppRouter {
         pageBuilder: (context, state) => CustomTransitionPage(
           key: state.pageKey,
           child: const StaffApplicationApply(),
+          transitionsBuilder: (context, animation, secondaryAnimation, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(1, 0),
+                end: Offset.zero,
+              ).animate(animation),
+              child: child,
+            );
+          },
+        ),
+      ),
+
+      GoRoute(
+        path: '/member/punishment-history',
+        name: 'punishement history',
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: const PunishmentList(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return SlideTransition(
               position: Tween<Offset>(
