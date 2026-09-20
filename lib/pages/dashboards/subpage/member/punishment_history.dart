@@ -28,6 +28,10 @@ class _PunishmentListState extends State<PunishmentList> {
   // Filter state: 'ALL', 'WARNING', 'PUNISHMENT'
   String _selectedFilter = 'ALL';
 
+  // Status filter state: 'ALL', 'ACTIVE', 'EXPIRED'
+  // ACTIVE = currently active punishments, EXPIRED = expired / non-active
+  String _selectedStatusFilter = 'ALL';
+
   // Pagination state
   int _currentPage = 1;
   static const int _pageSize = 5;
@@ -102,6 +106,7 @@ class _PunishmentListState extends State<PunishmentList> {
         _totalWarnings = 0;
         _totalPunishments = 0;
         _selectedFilter = 'ALL';
+        _selectedStatusFilter = 'ALL';
         _currentPage = 1;
       });
       return;
@@ -136,6 +141,7 @@ class _PunishmentListState extends State<PunishmentList> {
           _totalWarnings = result['total_warnings'] as int? ?? 0;
           _totalPunishments = result['total_punishments'] as int? ?? 0;
           _selectedFilter = 'ALL';
+          _selectedStatusFilter = 'ALL';
           _currentPage = 1;
           _isLoading = false;
         });
@@ -153,27 +159,98 @@ class _PunishmentListState extends State<PunishmentList> {
       _totalWarnings = 0;
       _totalPunishments = 0;
       _selectedFilter = 'ALL';
+      _selectedStatusFilter = 'ALL';
       _currentPage = 1;
       _isLoading = false;
     });
   }
 
-  // Filtered list based on active category chip
+  /// Returns true when a record is currently active, false when expired.
+  /// Handles `active` as bool/int/string and falls back to `status`,
+  /// `expired` and `is_active` fields when present.
+  bool _isRecordActive(dynamic item) {
+    if (item is! Map) return false;
+    final dynamic active = item['active'] ?? item['is_active'];
+    if (active is bool) return active;
+    if (active is num) return active != 0;
+    if (active is String) {
+      final normalized = active.trim().toLowerCase();
+      if (normalized == 'true' ||
+          normalized == '1' ||
+          normalized == 'yes' ||
+          normalized == 'active') {
+        return true;
+      }
+      if (normalized == 'false' ||
+          normalized == '0' ||
+          normalized == 'no' ||
+          normalized == 'expired' ||
+          normalized == 'inactive') {
+        return false;
+      }
+    }
+
+    final dynamic status = item['status'];
+    if (status is String) {
+      final normalized = status.trim().toLowerCase();
+      if (normalized == 'active') return true;
+      if (normalized == 'expired' ||
+          normalized == 'inactive' ||
+          normalized == 'revoked' ||
+          normalized == 'pardoned' ||
+          normalized == 'lifted') {
+        return false;
+      }
+    }
+
+    final dynamic expired = item['expired'];
+    if (expired is bool) return !expired;
+    if (expired is num) return expired == 0;
+    if (expired is String) {
+      final normalized = expired.trim().toLowerCase();
+      if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+        return false;
+      }
+      if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  int get _activeCount =>
+      _punishments.where((item) => _isRecordActive(item)).length;
+
+  int get _expiredCount => _punishments.length - _activeCount;
+
+  // Filtered list based on active category chip + active/expired status chip
   List<dynamic> get _filteredPunishments {
+    Iterable<dynamic> filtered = _punishments;
+
+    // Category filter: WARNING vs PUNISHMENT
     if (_selectedFilter == 'WARNING') {
-      return _punishments.where((item) {
+      filtered = filtered.where((item) {
         final category = item['category']?.toString().toUpperCase() ?? '';
         final type = item['type']?.toString().toUpperCase() ?? '';
         return category == 'WARNING' || type == 'WARN';
-      }).toList();
+      });
     } else if (_selectedFilter == 'PUNISHMENT') {
-      return _punishments.where((item) {
+      filtered = filtered.where((item) {
         final category = item['category']?.toString().toUpperCase() ?? '';
         final type = item['type']?.toString().toUpperCase() ?? '';
         return category != 'WARNING' && type != 'WARN';
-      }).toList();
+      });
     }
-    return _punishments;
+
+    // Status filter: ACTIVE vs EXPIRED (non-active)
+    if (_selectedStatusFilter == 'ACTIVE') {
+      filtered = filtered.where((item) => _isRecordActive(item));
+    } else if (_selectedStatusFilter == 'EXPIRED') {
+      filtered = filtered.where((item) => !_isRecordActive(item));
+    }
+
+    return filtered.toList();
   }
 
   // Slice list according to selected page
@@ -273,6 +350,40 @@ class _PunishmentListState extends State<PunishmentList> {
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
           color: isSelected ? Theme.of(context).primaryColor : Colors.white24,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatusFilterChip({
+    required String label,
+    required String filterKey,
+    required int count,
+    required IconData icon,
+    required Color activeColor,
+  }) {
+    final bool isSelected = _selectedStatusFilter == filterKey;
+    return ChoiceChip(
+      avatar: Icon(
+        icon,
+        size: 16,
+        color: isSelected ? activeColor : Colors.white70,
+      ),
+      label: Text('$label ($count)'),
+      selected: isSelected,
+      onSelected: (bool selected) {
+        if (selected) {
+          setState(() {
+            _selectedStatusFilter = filterKey;
+            _currentPage = 1;
+          });
+        }
+      },
+      selectedColor: activeColor.withValues(alpha: 0.25),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+        side: BorderSide(
+          color: isSelected ? activeColor : Colors.white24,
         ),
       ),
     );
@@ -503,6 +614,38 @@ class _PunishmentListState extends State<PunishmentList> {
                                     ),
                                   ],
                                 ),
+                                const SizedBox(height: 12),
+
+                                // Status Filter Chips: Active vs Expired (non-active)
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  alignment: WrapAlignment.center,
+                                  children: [
+                                    _buildStatusFilterChip(
+                                      label: 'All Status',
+                                      filterKey: 'ALL',
+                                      count: _punishments.length,
+                                      icon: Icons.filter_list,
+                                      activeColor: Colors.blueAccent,
+                                    ),
+                                    _buildStatusFilterChip(
+                                      label: 'Active',
+                                      filterKey: 'ACTIVE',
+                                      count: _activeCount,
+                                      icon:
+                                          Icons.gpp_good_outlined,
+                                      activeColor: Colors.greenAccent,
+                                    ),
+                                    _buildStatusFilterChip(
+                                      label: 'Expired',
+                                      filterKey: 'EXPIRED',
+                                      count: _expiredCount,
+                                      icon: Icons.history,
+                                      activeColor: Colors.orangeAccent,
+                                    ),
+                                  ],
+                                ),
                                 const SizedBox(height: 16),
 
                                 // Paginated Records List
@@ -510,7 +653,7 @@ class _PunishmentListState extends State<PunishmentList> {
                                   child: displayList.isEmpty
                                       ? Center(
                                           child: Text(
-                                            'No ${_selectedFilter.toLowerCase()} found for this player.',
+                                            'No ${_selectedStatusFilter == 'ALL' ? _selectedFilter.toLowerCase() : '${_selectedFilter.toLowerCase()} (${_selectedStatusFilter.toLowerCase()})'} found for this player.',
                                             style: const TextStyle(
                                               color: Colors.grey,
                                               fontSize: 15,
@@ -536,8 +679,7 @@ class _PunishmentListState extends State<PunishmentList> {
                                                     ?.toString() ??
                                                 'N/A';
                                             final bool active =
-                                                item['active'] == 1 ||
-                                                item['active'] == true;
+                                                _isRecordActive(item);
 
                                             final Color themeColor =
                                                 _getPunishmentColor(
